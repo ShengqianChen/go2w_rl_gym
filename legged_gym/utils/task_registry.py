@@ -5,7 +5,7 @@ import torch
 import numpy as np
 import sys
 
-from rsl_rl.env import VecEnv
+from rsl_rl.env.__init__ import VecEnv
 from rsl_rl.runners import OnPolicyRunner
 
 from legged_gym import LEGGED_GYM_ROOT_DIR, LEGGED_GYM_ENVS_DIR

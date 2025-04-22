@@ -2,8 +2,8 @@ import os
 import numpy as np
 from datetime import datetime
 import sys
-
-import isaacgym
+sys.path.append("/home/hu/csq/unitree_rl_gym/")
+import isaacgym  
 from legged_gym.envs import *
 from legged_gym.utils import get_args, task_registry
 import torch
