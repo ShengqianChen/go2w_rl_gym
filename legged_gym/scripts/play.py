@@ -1,5 +1,5 @@
 import sys
-sys.path.append("/home/hu/csq/unitree_rl_gym")
+sys.path.append("/home/hu/csq/go2w_rl_gym")
 from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
 import sys
@@ -17,7 +17,7 @@ import torch
 def play(args):
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
-    env_cfg.env.num_envs = 50
+    env_cfg.env.num_envs = 100
     env_cfg.noise.add_noise = False # 禁用噪声
     env_cfg.domain_rand.randomize_friction = False # 摩擦系数随机化
     env_cfg.domain_rand.push_robots = False # 对机器人施加外部扰动
@@ -27,9 +27,9 @@ def play(args):
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
     obs = env.get_observations() # 获得观测的环境信息
-    obs[:,6] = 0.0
+    obs[:,6] = 1.0
     obs[:,7] = 0.0
-    obs[:,8] = 1.0
+    obs[:,8] = 0.0
         
     obs_size = obs.size()
 
@@ -60,9 +60,9 @@ def play(args):
         #     action_file.write(",".join(map(str, actions.cpu().detach().numpy()[0])) + "\n")
         
         obs, _, rews, dones, infos = env.step(actions.detach()) # 获得新的观测
-        obs[:,6] = 0.0
+        obs[:,6] = 1.0
         obs[:,7] = 0.0
-        obs[:,8] = 1.0
+        obs[:,8] = 0.0
         
         # 将观测数据追加到文件中
         with open(obs_file_path, "a") as obs_file:

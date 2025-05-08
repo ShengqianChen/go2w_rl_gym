@@ -6,7 +6,7 @@ sys.path.append("/home/mmj/sim2real_g2w/unitree_rl_gym/")
 from legged_gym import LEGGED_GYM_ROOT_DIR
 from typing import Union
 import numpy as np
-import time
+import time  
 import torch  
 
 
@@ -32,25 +32,19 @@ def trans_r2s(qj):
         tmp = qj.copy()
         
         # 按照规则进行赋值
-        tmp[0] = qj[3]
-        tmp[1] = qj[4]
-        tmp[2] = qj[5]
-        tmp[3] = qj[13]
-
-        tmp[4] = qj[0]
-        tmp[5] = qj[1]
-        tmp[6] = qj[2]
-        tmp[7] = qj[12]
-
-        tmp[8] = qj[9]
-        tmp[9] = qj[10]
-        tmp[10] = qj[11]
-        tmp[11] = qj[15]
-
-        tmp[12] = qj[6]
-        tmp[13] = qj[7]
-        tmp[14] = qj[8]
-        tmp[15] = qj[14]
+        tmp[3] = qj[12]
+        tmp[7] = qj[13]
+        tmp[11] = qj[14]
+        tmp[15] = qj[15]
+        tmp[4] = qj[3]
+        tmp[5] = qj[4]
+        tmp[6] = qj[5]
+        tmp[8] = qj[6]
+        tmp[9] = qj[7]
+        tmp[10] = qj[8]
+        tmp[12] = qj[9]
+        tmp[13] = qj[10]
+        tmp[14] = qj[11]
 
         return tmp
 
@@ -59,25 +53,19 @@ def trans_s2r(qj):
         tmp = qj.copy()
         
         # 按照规则进行赋值
-        tmp[3] = qj[0]
-        tmp[4] = qj[1]
-        tmp[5] = qj[2]
-        tmp[13] = qj[3]
-
-        tmp[0] = qj[4]
-        tmp[1] = qj[5]
-        tmp[2] = qj[6]
-        tmp[12] = qj[7]
-
-        tmp[9] = qj[8]
-        tmp[10] = qj[9]
-        tmp[11] = qj[10]
-        tmp[15] = qj[11]
-
-        tmp[6] = qj[12]
-        tmp[7] = qj[13]
-        tmp[8] = qj[14]
-        tmp[14] = qj[15]
+        tmp[12] = qj[3]
+        tmp[13] = qj[7]
+        tmp[14] = qj[11]
+        tmp[15] = qj[15]
+        tmp[3] = qj[4]
+        tmp[4] = qj[5]
+        tmp[5] = qj[6]
+        tmp[6] = qj[8]
+        tmp[7] = qj[9]
+        tmp[8] = qj[10]
+        tmp[9] = qj[12]
+        tmp[10] = qj[13]
+        tmp[11] = qj[14]
 
         return tmp
 
@@ -97,7 +85,7 @@ class Controller:
         self.action = np.zeros(config.num_actions, dtype=np.float32)
         self.target_dof_pos = config.default_real_angles.copy()
         self.obs = np.zeros(config.num_obs, dtype=np.float32)
-        self.cmd = np.array([0.0, 0, 0])
+        self.cmd = np.array([0.0, 0.0, 0.0])
         self.counter = 0
         self.lin_vel = np.array([0.0, 0.0, 0.0])
 
@@ -265,7 +253,7 @@ class Controller:
     def run(self):
         """主控制循环（每个控制周期执行）"""
         self.counter += 1
-        
+          
         # 获得机器人电机数据
         for i in range(len(self.config.joint2motor_idx)):
             self.qj[i] = self.low_state.motor_state[self.config.joint2motor_idx[i]].q # 关机反馈位置信息：默认为弧度值
@@ -273,11 +261,7 @@ class Controller:
 
       #  print(self.dqj)
         self.qj = trans_r2s(self.qj)
-
         self.dqj = trans_r2s(self.dqj)
-        
-       # print(self.dqj)
-
         self.action = trans_r2s(self.action)
 
         # 机器人线速度，有待解决，最后再看吧
@@ -352,9 +336,7 @@ class Controller:
             file.write(",".join(map(str, self.action)) + "\n")
 
         self.qj = trans_s2r(self.qj)
-
         self.action = trans_s2r(self.action)
-
         self.dqj = trans_s2r(self.dqj)
        # print(self.action)
 
@@ -401,8 +383,6 @@ if __name__ == "__main__":
 
     # 创建控制器实例
     controller = Controller(config)
-
-
 
     # region ########### 状态机执行流程 ###########
     # 阶段1: 零力矩安全状态

@@ -7,7 +7,7 @@ class MotorMode:
     PR = 0  # Series Control for Pitch/Roll Joints
     AB = 1  # Parallel Control for A/B Joints
 
-# 阻尼模式
+# 阻尼模式  
 def create_damping_cmd(cmd: Union[LowCmdGo, LowCmdHG]):
     size = len(cmd.motor_cmd)
     for i in range(size):

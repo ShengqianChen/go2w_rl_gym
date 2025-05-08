@@ -3,10 +3,13 @@ from legged_gym.envs.base.legged_robot_config import LeggedRobotCfg, LeggedRobot
 class GO2WRoughCfg( LeggedRobotCfg ):
     # 训练环境类
     class env(LeggedRobotCfg.env):
-        num_envs = 6000 # 强化学习同时训练智能体的数量
+        num_envs = 6000 # 强化学习同时训练智能体的数量  
         num_actions = 16 # 可操控的动作数量
-        num_observations = 73 # 强化学习观测值的数量  
-      
+        num_observations = 73# 强化学习观测值的数量  
+        num_obs_hist = 5
+        num_privileged_obs = 263
+
+
     # 机器人指令类
     class commands( LeggedRobotCfg ):
         curriculum = True # 是否使用课程学习
@@ -15,33 +18,33 @@ class GO2WRoughCfg( LeggedRobotCfg ):
         resampling_time = 10. # 指令更改的时间
         heading_command = False # if true: compute ang vel command from heading error
         class ranges:
-            lin_vel_x = [-2, 2] # min max [m/s] x轴方向线速度
-            lin_vel_y = [-2, 2]   # min max [m/s] y轴方向线速度
-            ang_vel_yaw = [-2, 2]    # min max [rad/s] 角速度
+            lin_vel_x = [0, 2] # min max [m/s] x轴方向线速度
+            lin_vel_y = [0, 0]   # min max [m/s] y轴方向线速度
+            ang_vel_yaw = [0, 0]    # min max [rad/s] 角速度
             heading = [-3.14, 3.14] # 航向 实际上没有使用这个维度
 
     class terrain(LeggedRobotCfg.terrain):
-        mesh_type = 'plane' # "heightfield" # none, plane, heightfield or trimesh
-        horizontal_scale = 0.1 # [m]
-        vertical_scale = 0.005 # [m]
-        border_size = 25 # [m]
-        curriculum = True
-        static_friction = 2
-        dynamic_friction = 2
-        restitution = 0.
-        # rough terrain only:
-        measure_heights = True
+        mesh_type = 'trimesh' # "heightfield" # none, plane, heightfield or trimesh 地形网格类型
+        horizontal_scale = 0.1 # [m] 
+        vertical_scale = 0.005 # [m] 
+        border_size = 25 # [m] 
+        curriculum = False # 是否使用课程学习
+        static_friction = 0.8 # 静摩擦系数
+        dynamic_friction = 0.8 # 动摩擦系数
+        restitution = 0. # 反弹系数
+        # rough terrain only: 
+        measure_heights = True  
         measured_points_x = [-0.8, -0.7, -0.6, -0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8] # 1mx1.6m rectangle (without center line)
         measured_points_y = [-0.5, -0.4, -0.3, -0.2, -0.1, 0., 0.1, 0.2, 0.3, 0.4, 0.5]
         selected = False # select a unique terrain type and pass all arguments
         terrain_kwargs = None # Dict of arguments for selected terrain
-        max_init_terrain_level = 5 # starting curriculum state
+        max_init_terrain_level = 5 # starting curriculum state 地形课程学习最大难度等级
         terrain_length = 8.
         terrain_width = 8.
-        num_rows= 10 # number of terrain rows (levels)
-        num_cols = 20 # number of terrain cols (types)
+        num_rows= 3 # number of terrain rows (levels)
+        num_cols = 3 # number of terrain cols (types)
         # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
-        terrain_proportions = [0.5, 0.5, 0.0, 0.0, 0.0]
+        terrain_proportions = [0, 0, 1.0, 0, 0]
         # trimesh only:
         slope_treshold = 0.75 # slopes above this threshold will be corrected to vertical surfaces
 
@@ -137,7 +140,7 @@ class GO2WRoughCfg( LeggedRobotCfg ):
             lin_vel_z = -0.1
             ang_vel_xy = -0.05
             orientation = -2
-            torques = -0.0002
+            torques = -0.0001
             dof_vel = -1e-7
             dof_acc = -1e-7
             base_height = -0.5
@@ -154,10 +157,10 @@ class GO2WRoughCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
         entropy_coef = 0.003
     class runner( LeggedRobotCfgPPO.runner ):
-        run_name = '40_0.5_40_0.5_onlyX_no_wheel'
+        run_name = '50_1_40_0.5_stair_up_privileged_frac=0.9'
         experiment_name = 'rough_go2w'
         num_steps_per_env = 48 # per iteration
         max_iterations = 30000
-        load_run = "/home/hu/csq/unitree_rl_gym/logs/rough_go2w/Apr22_18-04-53_40_0.5_40_0.5_onlyX_no_wheel"
-        # checkpoint =1550
+        load_run = "/home/hu/csq/go2w_rl_gym/logs/rough_go2w/May08_17-01-05_50_1_40_0.5_stair_up_privileged_frac=0.8"
+        checkpoint =-1
   

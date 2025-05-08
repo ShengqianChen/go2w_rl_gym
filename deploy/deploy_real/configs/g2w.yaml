@@ -7,7 +7,7 @@ imu_type: "pelvis"    # "torso" or "pelvis"
 lowcmd_topic: "rt/lowcmd"
 lowstate_topic: "rt/lowstate"
 
-policy_path: "/home/mmj/sim2real_g2w/unitree_rl_gym/deploy/pre_train/g2w/only_x_20000.pt"
+policy_path: "/home/mmj/sim2real_g2w/unitree_rl_gym/deploy/pre_train/g2w/only_x_10000.pt"
 
 joint2motor_idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
 

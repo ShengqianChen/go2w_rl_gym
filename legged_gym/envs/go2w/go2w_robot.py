@@ -9,11 +9,11 @@ from isaacgym import gymtorch, gymapi, gymutil
 
 import torch
 from torch import Tensor
-from typing import Tuple, Dict
+from typing import Tuple, Dict  
 from legged_gym.envs import LeggedRobot
 from legged_gym.envs.base.base_task import BaseTask
-from legged_gym.utils.terrain import Terrain
-from legged_gym.utils.math import quat_apply_yaw, wrap_to_pi, torch_rand_sqrt_float
+from legged_gym.utils.terrain import Terrain  
+from legged_gym.utils.math import quat_apply_yaw, wrap_to_pi, torch_rand_sqrt_float, get_scale_shift
 from legged_gym.utils.helpers import class_to_dict
 from .go2w_config import GO2WRoughCfg
 
@@ -35,7 +35,7 @@ class Go2w(LeggedRobot):
             # 根据action计算扭矩
             self.gym.set_dof_actuation_force_tensor(self.sim, gymtorch.unwrap_tensor(self.torques))
             # 将计算得到的扭矩应用到仿真环境中的关节上。
-            self.gym.simulate(self.sim) # 更新环境状态
+            self.gym.simulate(self.sim) # 更新环境状态  
             if self.device == 'cpu':
                 self.gym.fetch_results(self.sim, True)
             self.gym.refresh_dof_state_tensor(self.sim)
@@ -220,6 +220,7 @@ class Go2w(LeggedRobot):
 
         self.base_height_command = torch.tensor(self.cfg.rewards.base_height_target,dtype=torch.float,device=self.device)
         self.base_height_command = self.base_height_command.unsqueeze(0).repeat(self.num_envs,1)
+
         self.dof_err = self.dof_pos - self.default_dof_pos # 机器人当前各DOF位置 - 机器人默认各DOF位置 看作一种位置的偏差值
         self.dof_err[:,self.wheel_indices] = 0 # 轮子的位置偏差值设置为0，因为轮子在每个位置都是一样的
         self.dof_pos[:,self.wheel_indices] = 0 # 轮子的关节位置设置为0，理由同上
@@ -229,26 +230,33 @@ class Go2w(LeggedRobot):
                                     self.commands[:, :3] * self.commands_scale, 
                                     # X轴线速度 Y轴线速度 角速度指令
                                     # 外部控制命令 * [lin_vel, lin_vel, ang_vel] = [2.0, 2.0, 0.25]
-                                    # self.base_height_command, # 基座机器人高度 go2w难以测量，注释掉了
+                                    # self.base_height_command, # 基座机器人高度命令 
                                     # 在训练中command命令是一段采样时间后随机生成的
                                     self.dof_err * self.obs_scales.dof_pos, # 关节误差 * 1.0
                                     self.dof_vel * self.obs_scales.dof_vel, # 机器人各DOF速度 * 0.05
                                     self.dof_pos, # 机器人各DOF位置
                                     self.actions, # 动作输入
                                     ),dim=-1)
+        
         # lin_vel = 2.0 ang_vel = 0.25 dof_pos = 1.0 dof_vel = 0.05 height_measurements = 5.0 clip_observations = 100. clip_actions = 100.
         # add perceptive inputs if not blind
-        #if self.cfg.terrain.measure_heights:
-        #   heights = torch.clip(self.root_states[:, 2].unsqueeze(1) - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales.height_measurements
-        #    print(heights.size())
-        #    print(self.obs_buf.size())
-        #    self.obs_buf = torch.cat((self.obs_buf, heights), dim=-1) # 高度测量
-        #    print('有高度测量值')
         # add noise if needed
         if self.add_noise:
             # print('有噪声')
             self.obs_buf += (2 * torch.rand_like(self.obs_buf) - 1) * self.noise_scale_vec # 添加噪声
             # print(self.obs_buf.size())
+
+        heights = torch.clip(self.root_states[:, 2].unsqueeze(1) - 0.5 - self.measured_heights, -1, 1.) * self.obs_scales.height_measurements
+        # self.obs_buf = torch.cat((self.obs_buf, heights), dim = -1)
+
+        # contact_forces_scale, contact_forces_shift = get_scale_shift(self.cfg.normalization.contact_force_range)
+        self.privileged_obs_buf = torch.cat((self.obs_buf,
+                                             self.base_lin_vel*self.obs_scales.lin_vel,
+                                             # (self.contact_forces.view(self.num_envs, -1) - contact_forces_shift) * contact_forces_scale,
+                                             heights),
+                                             dim=-1) ## check the velocity and disturbance force part 
+     
+        
              
     def create_sim(self):
         """ Creates simulation, terrain and evironments
@@ -387,6 +395,10 @@ class Go2w(LeggedRobot):
         Returns:
             [torch.Tensor]: Torques sent to the simulation
         """
+        self.log_dir = "./logs"  # 日志文件夹路径
+        if not os.path.exists(self.log_dir):  
+            os.makedirs(self.log_dir)
+        self.log_file = os.path.join(self.log_dir, "torques.log")
         #pd controller
         dof_err = self.default_dof_pos - self.dof_pos # 各DOF默认位置 - 目前各DOF位置
         dof_err[:,self.wheel_indices] =  0 # 轮子的误差是0
@@ -405,6 +417,8 @@ class Go2w(LeggedRobot):
             torques = actions_scaled
         else:
             raise NameError(f"Unknown controller type: {control_type}")
+        with open(self.log_file, "a") as f:  # 追加模式写入
+            f.write(f"{torques.tolist()}\n")  # 将tensor转换为list再写入
         return torch.clip(torques, -self.torque_limits, self.torque_limits)
 
     def _reset_dofs(self, env_ids):
