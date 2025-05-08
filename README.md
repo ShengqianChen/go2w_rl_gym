@@ -4,5 +4,6 @@ This repository offers a quick-start, lightweight approach to controlling a quad
 - [rsl\_rl](https://github.com/leggedrobotics/rsl_rl.git): Reinforcement learning algorithm implementation.
 - [mujoco](https://github.com/google-deepmind/mujoco.git): Providing powerful simulation functionalities.
 - [unitree\_sdk2\_python](https://github.com/unitreerobotics/unitree_sdk2_python.git): Hardware communication interface for physical deployment.
+- [legged-robots-manipulation](https://github.com/aCodeDog/legged-robots-manipulation): Control references for the go2w robot.
 
 
