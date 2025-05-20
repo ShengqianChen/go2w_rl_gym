@@ -395,30 +395,33 @@ class Go2w(LeggedRobot):
         Returns:
             [torch.Tensor]: Torques sent to the simulation
         """
-        self.log_dir = "./logs"  # 日志文件夹路径
-        if not os.path.exists(self.log_dir):  
-            os.makedirs(self.log_dir)
-        self.log_file = os.path.join(self.log_dir, "torques.log")
+        # 输出力矩
+        # self.log_dir = "./logs"  # 日志文件夹路径
+        # if not os.path.exists(self.log_dir):  
+        #     os.makedirs(self.log_dir)
+        # self.log_file = os.path.join(self.log_dir, "torques.log")
         #pd controller
         dof_err = self.default_dof_pos - self.dof_pos # 各DOF默认位置 - 目前各DOF位置
         dof_err[:,self.wheel_indices] =  0 # 轮子的误差是0
         actions_scaled = actions * self.cfg.control.action_scale # action * 0.25
-        self.dof_vel[:,self.wheel_indices] =  -1.0
-        # self.d_gains[self.wheel_indices] = 20.0
-        # self.p_gains[self.wheel_indices] = 0.0 
-        # self.dof_vel[:,self.wheel_indices] =  self.dof_vel[:,self.wheel_indices] - actions_scaled[:,self.wheel_indices] # 设置轮子的DOF速度为wheel_speed: 1
-        # actions_scaled[:, self.wheel_indices] = 0
+        actions_scaled[:, self.wheel_indices] = 0 # 轮子使用速度控制，角度增量为0
+        vel_ref = torch.zeros_like(actions_scaled)
+        vel_tmp = actions * self.cfg.control.vel_scale # action提供期望速度
+        vel_ref[:, self.wheel_indices] = vel_tmp[:, self.wheel_indices] # 只有轮子使用速度控制
         control_type = self.cfg.control.control_type # 其实就是P
         if control_type=="P":
-            torques = self.p_gains*(actions_scaled + dof_err) - self.d_gains*self.dof_vel
+            torques = self.p_gains * (
+                actions_scaled + dof_err
+            ) + self.d_gains * (vel_ref - self.dof_vel)
         elif control_type=="V":
             torques = self.p_gains*(actions_scaled - self.dof_vel) - self.d_gains*(self.dof_vel - self.last_dof_vel)/self.sim_params.dt
         elif control_type=="T":
             torques = actions_scaled
         else:
             raise NameError(f"Unknown controller type: {control_type}")
-        with open(self.log_file, "a") as f:  # 追加模式写入
-            f.write(f"{torques.tolist()}\n")  # 将tensor转换为list再写入
+        # 输出力矩，训练时记得去掉
+        # with open(self.log_file, "a") as f:  # 追加模式写入
+        #     f.write(f"{torques.tolist()}\n")  # 将tensor转换为list再写入
         return torch.clip(torques, -self.torque_limits, self.torque_limits)
 
     def _reset_dofs(self, env_ids):

@@ -46,12 +46,12 @@ def play(args):
         export_policy_as_jit(ppo_runner.alg.actor_critic, path)
         print('Exported policy as jit script to: ', path)
 
-    action_file_path = "/home/hu/csq/unitree_rl_gym/deploy/actions_sim.log"
-    obs_file_path = "/home/hu/csq/unitree_rl_gym/deploy/obs_sim.log"
+    # action_file_path = "/home/hu/csq/unitree_rl_gym/deploy/actions_sim.log"
+    # obs_file_path = "/home/hu/csq/unitree_rl_gym/deploy/obs_sim.log"
 
     # 将观测数据追加到文件中
-    with open(obs_file_path, "a") as obs_file:
-        obs_file.write(",".join(map(str, obs.cpu().detach().numpy()[0])) + "\n")
+   # with open(obs_file_path, "a") as obs_file:
+    #    obs_file.write(",".join(map(str, obs.cpu().detach().numpy()[0])) + "\n")
 
     for i in range(10*int(env.max_episode_length)):
         actions = policy(obs.detach()) # 将张量obs从计算图中分离出来，避免梯度传播
@@ -65,12 +65,12 @@ def play(args):
         obs[:,8] = 0.0
         
         # 将观测数据追加到文件中
-        with open(obs_file_path, "a") as obs_file:
-            obs_file.write(",".join(map(str, obs.cpu().detach().numpy()[0])) + "\n")
+#        with open(obs_file_path, "a") as obs_file:
+   #         obs_file.write(",".join(map(str, obs.cpu().detach().numpy()[0])) + "\n")
 
 if __name__ == '__main__':
     EXPORT_POLICY = True
     RECORD_FRAMES = False
-    MOVE_CAMERA = False
+    MOVE_CAMERA = True
     args = get_args()
     play(args)

@@ -28,7 +28,7 @@ class GO2WRoughCfg( LeggedRobotCfg ):
         horizontal_scale = 0.1 # [m] 
         vertical_scale = 0.005 # [m] 
         border_size = 25 # [m] 
-        curriculum = False # 是否使用课程学习
+        curriculum = True # 是否使用课程学习
         static_friction = 0.8 # 静摩擦系数
         dynamic_friction = 0.8 # 动摩擦系数
         restitution = 0. # 反弹系数
@@ -41,8 +41,8 @@ class GO2WRoughCfg( LeggedRobotCfg ):
         max_init_terrain_level = 5 # starting curriculum state 地形课程学习最大难度等级
         terrain_length = 8.
         terrain_width = 8.
-        num_rows= 3 # number of terrain rows (levels)
-        num_cols = 3 # number of terrain cols (types)
+        num_rows= 10 # number of terrain rows (levels)
+        num_cols = 20 # number of terrain cols (types)
         # terrain types: [smooth slope, rough slope, stairs up, stairs down, discrete]
         terrain_proportions = [0, 0, 1.0, 0, 0]
         # trimesh only:
@@ -106,6 +106,7 @@ class GO2WRoughCfg( LeggedRobotCfg ):
         # action scale: target angle = actionScale * action + defaultAngle
         # 乘一个缩放因子，目的是让动作值适应不同关节的运动范围
         action_scale = 0.25
+        vel_scale = 10.0
         # decimation: Number of control action updates @ sim DT per policy DT
         # 仿真环境的控制频率/decimation = 实际环境中的控制频率
         decimation = 4
@@ -135,8 +136,8 @@ class GO2WRoughCfg( LeggedRobotCfg ):
        
         class scales( LeggedRobotCfg.rewards.scales ):
             termination = -0.8
-            tracking_lin_vel = 3.0
-            tracking_ang_vel = 1.5
+            tracking_lin_vel = 4.0
+            tracking_ang_vel = 2.0
             lin_vel_z = -0.1
             ang_vel_xy = -0.05
             orientation = -2
@@ -157,10 +158,10 @@ class GO2WRoughCfgPPO( LeggedRobotCfgPPO ):
     class algorithm( LeggedRobotCfgPPO.algorithm ):
         entropy_coef = 0.003
     class runner( LeggedRobotCfgPPO.runner ):
-        run_name = '50_1_40_0.5_stair_up_privileged_frac=0.9'
+        run_name = '50_1_40_0.5_stair_up_privileged_frac=0.8'
         experiment_name = 'rough_go2w'
         num_steps_per_env = 48 # per iteration
         max_iterations = 30000
-        load_run = "/home/hu/csq/go2w_rl_gym/logs/rough_go2w/May08_17-01-05_50_1_40_0.5_stair_up_privileged_frac=0.8"
+        load_run = "/home/hu/csq/DreamWaQ/legged_gym/logs/rough_go2w/May15_19-35-55_blind_50_1_40_0.5_trmeish"
         checkpoint =-1
   
