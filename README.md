@@ -5,5 +5,6 @@ This repository offers a quick-start, lightweight approach to controlling a quad
 - [mujoco](https://github.com/google-deepmind/mujoco.git): Providing powerful simulation functionalities.
 - [unitree\_sdk2\_python](https://github.com/unitreerobotics/unitree_sdk2_python.git): Hardware communication interface for physical deployment.
 - [legged-robots-manipulation](https://github.com/aCodeDog/legged-robots-manipulation): Control references for the go2w robot.
+- [Wheel Legged Gym](https://github.com/clearlab-sustech/Wheel-Legged-Gym/tree/master): Control references for the wheel-legged robot.
 
 [video](https://www.bilibili.com/video/BV1cX5KzGERK/?spm_id_from=333.1387.homepage.video_card.click&vd_source=38ac4124498d462225113e5f9e9f4c4a)
